@@ -8,6 +8,7 @@ import qtealeaves as qtl
 from qtealeaves import modeling
 from qtealeaves.convergence_parameters import TNConvergenceParameters
 from itertools import combinations
+import time
 
 # Utility for plotting the antennas
 def plot_antennas(df, status, axes=None):
@@ -134,6 +135,9 @@ def solve_bruteforce(W, A, N, C):
     
     """
     
+    # time the execution
+    t0 = time.time()
+
     # Generate all possible combinations of cameras
     if C > 0:
         comb = list(combinations(range(N), C))
@@ -151,10 +155,14 @@ def solve_bruteforce(W, A, N, C):
             best_state = state
             best_energy = energy
 
+    t1 = time.time()
+    t_tot = t1 - t0
     print(f"best solution: {best_state} with energy {best_energy}")
     if C == 0:
         print(f"best solution: {int(np.sum(best_state))} cameras")
-    return best_state
+    print(f"total time: {t_tot} seconds")
+
+    return best_state, t_tot
 
 
 if __name__ == "__main__":
@@ -197,7 +205,7 @@ if __name__ == "__main__":
     W, A = generate_problem(data, xi)
 
     # solve the problem
-    best_state = solve_bruteforce(W, A, N, C)
+    best_state, _ = solve_bruteforce(W, A, N, C)
 
     # plot the solution
     fig, ax = plt.subplots()
