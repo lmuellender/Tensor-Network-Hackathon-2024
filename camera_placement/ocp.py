@@ -9,6 +9,8 @@ import qtealeaves as qtl
 from qtealeaves import modeling
 from qtealeaves.convergence_parameters import TNConvergenceParameters
 from scipy.sparse.linalg import eigs, eigsh
+from qiskit.quantum_info import Statevector
+import time
 
 
 #%%
@@ -43,7 +45,10 @@ def plot_antennas(df, status, axes=None):
         axes.add_artist( Drawing_colored_circle )
     # ax = df.plot(x='x_loc', y='y_loc', kind='scatter', s='area', alpha=0.45)
     df.plot(x='x_loc', y='y_loc', kind='scatter', s=10., color='k', ax=axes)
-    df[['x_loc','y_loc','id']].apply(lambda x: axes.text(x[0], x[1], int(x[2])),axis=1)
+    for i in df.iterrows():
+        v = i[1]['x_loc'], i[1]['y_loc']
+        axes.annotate(i[0],v)
+    # df[['x_loc','y_loc','id']].apply(lambda x: axes.text(x[0], x[1], int(x[2])),axis=1)
     axes.set_ylabel('Latitude', fontsize=14)
     axes.set_xlabel('Longitude', fontsize=14)
 
@@ -159,7 +164,102 @@ def number_constraint(W, A, C, P, normalize=False):
         A_P *= scaling
     return W_P, A_P, scaling
 
+def generate_data(N,a,seed):
+    np.random.seed(seed)
+    # Generate radius of the antennas
+    radius = .5*a*(1. + np.random.rand(N))/np.sqrt(N)
 
+    # Distribute sites uniformly but not symmetrically in the square
+    sampler = Sobol(2, scramble=False, optimization='lloyd')
+    sequence = sampler.random_base2(m=int(np.ceil(np.log2(N))))
+
+    # Save the data of the cameras in a Pandas Dataframe
+    xs = [a*x[0] for x in sequence][:N]
+    ys = [a*x[1] for x in sequence][:N]
+
+    d = {'id': np.arange(N, dtype=int), 
+        'x_loc': xs, 
+        'y_loc': ys, 
+        'radius': radius,
+        'area': np.pi*radius**2}
+    data = pd.DataFrame(data=d)
+
+    return data
+
+def model_ocp(params, W_P, A_P, my_ops, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots):
+    model_name = lambda params: "CameraPlacement_xi%2.4f" % (params["xi"])
+
+    # Define a general quantum model - 1-dimensional, of size "N", with a given name
+    model = modeling.QuantumModel(dim=1, lvals="N", name=model_name)
+
+    # this is the hamiltonian
+    
+    model += modeling.RandomizedLocalTerm(operator="sz", strength="xi", prefactor=1, coupling_entries=A_P)
+    
+    model += modeling.TwoBodyAllToAllTerm1D(
+        operators=["sz", "sz"], strength=1., prefactor=1, coupling_matrix=W_P
+    )
+
+    #observables
+    # first define a general TNObservables class
+    my_obs = qtl.observables.TNObservables()
+    my_obs += qtl.observables.TNObsProjective(num_shots=num_shots)
+
+    # we put it all into the TNConvergenceParameters object
+    conv_params = TNConvergenceParameters(max_bond_dimension = max_bond_dim,
+                                        cut_ratio = cut_ratio,
+                                        max_iter = max_iter,
+                                        statics_method=statics_method,
+                                        data_type='D', # double precision real
+                                        device='cpu', # we are running on CPUs
+                                        )
+
+    # input_folder = lambda params : 'input_L%02d_g%2.4f'%(params['L'],params['xi'],)
+    # output_folder = lambda params : 'output_L%02d_g%2.4f'%(params['L'],params['xi'],)
+
+    simulation = qtl.QuantumGreenTeaSimulation(model, my_ops, conv_params, my_obs,
+                                        tn_type=tn_type,
+                                        tensor_backend=tensor_backend,
+                                        # folder_name_input=input_folder,
+                                        # folder_name_output=output_folder,
+                                        store_checkpoints=False
+        )
+    return model, simulation
+
+def everythin_else(sizes, C, P, xi_list, a, seed, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, sweep_order=None):
+    
+    my_ops = qtl.operators.TNSpin12Operators()
+
+    # itertools: 1st one iterates slowly
+    params = []
+    dlist = []
+    mlist=[]
+    slist = []
+    for size, xi in itertools.product(sizes, xi_list):
+        if sweep_order==None:
+            params.append({
+                    'N' : size, 
+                    'xi' : xi,
+            })
+        else:
+            params.append({
+                    'N' : size, 
+                    'xi' : xi,
+                    'sweep_order': sweep_order
+            })
+        data = generate_data(size,a,seed)
+
+        # actual generation of the problem
+        W, A = generate_problem(data, 1.0, normalize=False)
+        W_P, A_P, scaling = number_constraint(W, A, C, P=P, normalize=False)
+
+        model, simulation = model_ocp(params, W_P, A_P, my_ops, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots)
+
+        dlist.append(data)
+        mlist.append(model)
+        slist.append(simulation)
+
+    return params, dlist, mlist, slist
 
 def final():
     
