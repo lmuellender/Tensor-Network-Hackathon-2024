@@ -9,7 +9,7 @@ import qtealeaves as qtl
 from qtealeaves import modeling
 from qtealeaves.convergence_parameters import TNConvergenceParameters
 from scipy.sparse.linalg import eigs, eigsh
-from qiskit.quantum_info import Statevector
+# from qiskit.quantum_info import Statevector
 import time
 
 
