@@ -2,6 +2,8 @@
 import random
 import pandas as pd
 import numpy as np
+import matplotlib as mpl
+
 import matplotlib.pyplot as plt
 from scipy.stats.qmc import Sobol
 import itertools
@@ -12,6 +14,8 @@ from scipy.sparse.linalg import eigs, eigsh
 # from qiskit.quantum_info import Statevector
 import time
 
+
+#%%
 
 # Utility for plotting the antennas
 def plot_antennas(df, status, axes=None):
@@ -184,7 +188,7 @@ def generate_data(N,a,seed):
 
     return data
 
-def model_ocp(params, W_P, A_P, my_ops, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots):
+def model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation):
     model_name = lambda params: "CameraPlacement_xi%2.4f" % (params["xi"])
 
     # Define a general quantum model - 1-dimensional, of size "N", with a given name
@@ -210,6 +214,8 @@ def model_ocp(params, W_P, A_P, my_ops, max_bond_dim, cut_ratio, max_iter, stati
                                         statics_method=statics_method,
                                         data_type='D', # double precision real
                                         device='cpu', # we are running on CPUs
+                                        imag_evo_dt=tau,
+                                        rel_deviation = rel_deviation,
                                         )
 
     # input_folder = lambda params : 'input_L%02d_g%2.4f'%(params['L'],params['xi'],)
@@ -224,7 +230,7 @@ def model_ocp(params, W_P, A_P, my_ops, max_bond_dim, cut_ratio, max_iter, stati
         )
     return model, simulation
 
-def everythin_else(sizes, C, P, xi_list, a, seed, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, sweep_order=None):
+def everythin_else(sizes, C, P, xi_list, a, seed, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation=1e-12, sweep_order=None):
     
     my_ops = qtl.operators.TNSpin12Operators()
 
@@ -251,7 +257,7 @@ def everythin_else(sizes, C, P, xi_list, a, seed, max_bond_dim, cut_ratio, max_i
         W, A = generate_problem(data, 1.0, normalize=False)
         W_P, A_P, scaling = number_constraint(W, A, C, P=P, normalize=False)
 
-        model, simulation = model_ocp(params, W_P, A_P, my_ops, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots)
+        model, simulation = model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation)
 
         dlist.append(data)
         mlist.append(model)
