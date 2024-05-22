@@ -3,11 +3,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats.qmc import Sobol
-import itertools
-import qtealeaves as qtl
-from qtealeaves import modeling
-from qtealeaves.convergence_parameters import TNConvergenceParameters
-from itertools import combinations
+from scipy.special import binom
+from itertools import combinations, islice
+from multiprocessing import Pool, cpu_count
+from functools import partial
 import time
 
 # Utility for plotting the antennas
@@ -78,7 +77,7 @@ def circle_overlap(x0, y0, r0, x1, y1, r1):
     overlap = theta*rr1 + phi*rr0 - 0.5*np.sqrt((r0+r1-c) * (r0-r1+c) * (r1-r0+c)*(r1+r0+c))
     return overlap
 
-def generate_problem(data, xi, normalize=False):
+def generate_matrices(data, xi, normalize=False):
     """ 
     Function to calculate the overlap matrix and the linear term of the Ising model,
     given the problem parameters.
@@ -118,63 +117,13 @@ def generate_problem(data, xi, normalize=False):
         A = A.copy()/norm
     return W, A
 
-def solve_bruteforce(W, A, N, C):
-    """ 
-    Function to solve the Ising model with a brute force algorithm.
-    
-    Input:
-    -----------------------------------------
-        W: numpy.array, overlap matrix.
-        A: numpy.array, linear term.
-        N: int, number of sites.
-        C: int, number of cameras.
-    
-    Returns:
-    -----------------------------------------
-    numpy.array, status of the sites.
-    
+def generate_problem(N, xi=0.1):
     """
-    
-    # time the execution
-    t0 = time.time()
+    Function to generate the problem of camera placement.
 
-    # Generate all possible combinations of cameras
-    if C > 0:
-        comb = list(combinations(range(N), C))
-    else:
-        comb = [com for sub in range(N) for com in combinations(range(N), sub + 1)]    
-
-    best_state = None
-    best_energy = np.inf
-    print(f"trying {len(comb)} combinations of cameras for {N} sites and {C} cameras...")
-    for c in comb:
-        state = np.zeros((N,))
-        state[np.array(c)] = 1
-        energy = np.dot(state, np.dot(W, state)) + np.sum(np.dot(A, state))
-        if energy < best_energy:
-            best_state = state
-            best_energy = energy
-
-    t1 = time.time()
-    t_tot = t1 - t0
-    print(f"best solution: {best_state} with energy {best_energy}")
-    if C == 0:
-        print(f"best solution: {int(np.sum(best_state))} cameras")
-    print(f"total time: {t_tot} seconds")
-
-    return best_state, t_tot
-
-
-if __name__ == "__main__":
-    # number of sites
-    N = 15
-
-    # number of cameras
-    C = N//2 
-    # C = 0
-
+    """
     # side of the square defining the simplified model
-    a = 10
+    a = 10.
 
     # Generate radius of the antennas
     np.random.seed(42)
@@ -197,18 +146,121 @@ if __name__ == "__main__":
         'area': np.pi*radius**2}
     data = pd.DataFrame(data=d)
 
-    # plot the sites
-    # plot_antennas(data, status=np.ones((data.shape[0],)))
-
     # generate the problem
-    xi = 1.0
-    W, A = generate_problem(data, xi)
+    W, A = generate_matrices(data, xi)
 
-    # solve the problem
-    best_state, _ = solve_bruteforce(W, A, N, C)
+    return W, A, data
 
-    # plot the solution
-    fig, ax = plt.subplots()
-    plot_antennas(data, status=best_state, axes=ax)
+def generate_combinations(N, C, chunk_size):
+    if C > 0:
+        comb_iter = combinations(range(N), C)
+    else:
+        comb_iter = (com for sub in range(N) for com in combinations(range(N), sub + 1))
+    
+    while True:
+        chunk = list(islice(comb_iter, chunk_size))
+        if not chunk:
+            break
+        yield chunk
+
+def evaluate_combination(c, N, W, A):
+        state = -np.ones((N,))
+        state[np.array(c)] = 1
+        energy = 0.5 * np.dot(state, np.dot(W, state)) + np.sum(np.dot(A, state))
+        state = (state + 1) / 2
+        return energy, state
+
+def solve_bruteforce(W, A, N, C):
+    """ 
+    Function to solve the Ising model with a brute force algorithm.
+    
+    Input:
+    -----------------------------------------
+        W: numpy.array, overlap matrix.
+        A: numpy.array, linear term.
+        N: int, number of sites.
+        C: int, number of cameras.
+    
+    Returns:
+    -----------------------------------------
+    numpy.array, status of the sites.
+    
+    """
+    
+    # time the execution
+    t0 = time.time()
+
+    # If N>16 Use multiprocessing to evaluate the combinations in parallel
+    # chunk size for multiprocessing
+    chunk_size = 10000000
+    n_chunks = binom(N, C) if C > 0 else 2**N
+    n_chunks = np.ceil(n_chunks / chunk_size)
+
+    best_state = None
+    best_energy = np.inf
+    if N > 16:
+        # Create a partial function with N, W, and A as fixed arguments
+        print(f"trying many combinations of cameras for {N} sites and {C} cameras...")
+        print(f"splitting the problem in {n_chunks} chunks of {chunk_size} combinations each")
+        print(f"using {cpu_count()} cores")
+
+        partial_evaluate = partial(evaluate_combination, N=N, W=W, A=A)
+        count = 1
+        for comb_chunk in generate_combinations(N, C, chunk_size):
+            print(f"chunk {count} of {n_chunks}...")
+            with Pool(processes=cpu_count()) as pool:
+                results = pool.map(partial_evaluate, comb_chunk)
+            
+            # Find the best combination in the current chunk
+            chunk_best_energy, chunk_best_state = min(results, key=lambda x: x[0])
+            
+            if chunk_best_energy < best_energy:
+                best_energy = chunk_best_energy
+                best_state = chunk_best_state
+            count += 1
+    else:
+        # Generate all possible combinations of cameras
+        if C > 0:
+            comb = list(combinations(range(N), C))
+        else:
+            comb = [com for sub in range(N) for com in combinations(range(N), sub + 1)]    
+
+        print(f"trying {len(comb)} combinations of cameras for {N} sites and {C} cameras...")
+        for c in comb:
+            energy, state = evaluate_combination(c, N, W, A)
+            if energy < best_energy:
+                best_energy = energy
+                best_state = state
+
+    t1 = time.time()
+    t_tot = t1 - t0
+    print(f"best solution: {best_state} with energy {best_energy}")
+    if C == 0:
+        C = int(np.sum(best_state))
+        print(f"best solution: {C} cameras")
+    print(f"total time: {t_tot} seconds")
+
+    return best_state, best_energy, C, t_tot
+
+
+if __name__ == "__main__":
+    # number of sites
+    N_list = [32]
+    # N_list = [16]
+    xi = .25  # relative multiplier
+    
+    for N in N_list:
+        # generate the problem
+        W, A, data = generate_problem(N, xi)
+        # number of cameras 
+        for C in [N//2, 0]:
+            # solve the problem
+            best_state, best_energy, C, T = solve_bruteforce(W, A, N, C)
+
+            # save solution
+            fig, ax = plt.subplots()
+            plot_antennas(data, status=best_state, axes=ax)
+            ax.set_title(f"{N} sites, {C} cameras, energy {best_energy:.3f}, time {T:.4f} s")
+            fig.savefig(f"camera_placement/results/bruteforce_N{N}_C{C}_tst.pdf", bbox_inches='tight')
 
     plt.show()

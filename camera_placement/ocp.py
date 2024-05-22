@@ -11,8 +11,6 @@ from qtealeaves.convergence_parameters import TNConvergenceParameters
 from scipy.sparse.linalg import eigs, eigsh
 
 
-#%%
-
 # Utility for plotting the antennas
 def plot_antennas(df, status, axes=None):
     """
