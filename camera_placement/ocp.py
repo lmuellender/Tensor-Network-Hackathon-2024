@@ -165,7 +165,7 @@ def number_constraint(W, A, C, P, normalize=False):
     return W_P, A_P, scaling
 
 def generate_data(N,a,seed):
-    np.random.seed(seed)
+    # np.random.seed(seed)
     # Generate radius of the antennas
     radius = .5*a*(1. + np.random.rand(N))/np.sqrt(N)
 
@@ -260,6 +260,10 @@ def everythin_else(sizes, C, P, xi_list, a, seed, max_bond_dim, cut_ratio, max_i
         slist.append(simulation)
 
     return params, dlist, mlist, slist
+
+
+def alpha(exact_H_min, tn_energy):
+    return tn_energy/exact_H_min
 
 def final():
     
