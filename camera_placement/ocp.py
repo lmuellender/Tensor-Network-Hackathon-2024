@@ -13,7 +13,7 @@ import qtealeaves as qtl
 from qtealeaves import modeling
 from qtealeaves.convergence_parameters import TNConvergenceParameters
 from scipy.sparse.linalg import eigs, eigsh
-from qiskit.quantum_info import Statevector
+# from qiskit.quantum_info import Statevector
 import time
 
 
@@ -170,8 +170,8 @@ def number_constraint(W, A, C, P, normalize=False):
     return W_P, A_P, scaling
 
 def generate_data(N,a,seed):
-    # np.random.seed(seed)
     # Generate radius of the antennas
+    np.random.seed(seed)
     radius = .5*a*(1. + np.random.rand(N))/np.sqrt(N)
 
     # Distribute sites uniformly but not symmetrically in the square

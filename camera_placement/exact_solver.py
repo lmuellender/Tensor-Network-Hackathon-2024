@@ -131,14 +131,13 @@ def generate_problem(N, xi=0.1):
 
     # Distribute sites uniformly but not symmetrically in the square
     m = int(np.ceil(np.log2(N)))
-    sampler = Sobol(2, scramble=False, optimization='lloyd')
+    sampler = Sobol(2, scramble=False, optimization='random-cd')
     sequence = sampler.random_base2(m=m)
-
-    # Save the data of the cameras in a Pandas Dataframe
 
     xs = [a*x[0] for x in sequence][:N]
     ys = [a*x[1] for x in sequence][:N]
 
+    # Save the data of the cameras in a Pandas Dataframe
     d = {'id': np.arange(N, dtype=int), 
         'x_loc': xs, 
         'y_loc': ys, 
@@ -146,7 +145,7 @@ def generate_problem(N, xi=0.1):
         'area': np.pi*radius**2}
     data = pd.DataFrame(data=d)
 
-    # generate the problem
+    # generate the matrices
     W, A = generate_matrices(data, xi)
 
     return W, A, data
@@ -186,22 +185,22 @@ def solve_bruteforce(W, A, N, C):
     numpy.array, status of the sites.
     
     """
-    
-    # time the execution
-    t0 = time.time()
 
     # If N>16 Use multiprocessing to evaluate the combinations in parallel
-    # chunk size for multiprocessing
+    # chunk size for multiprocessing to avoid memory overflow
     num_comb = binom(N, C) if C > 0 else 2**N
     chunk_size = int(min(10000000, num_comb))
     n_chunks = int(np.ceil(num_comb / chunk_size))
+
+    # time the execution
+    t0 = time.time()
 
     best_state = None
     best_energy = np.inf
     if N > 16:
         # Create a partial function with N, W, and A as fixed arguments
         print(f"trying {num_comb} combinations of cameras for {N} sites and {C} cameras...")
-        print(f"splitting the problem in {n_chunks} chunks of {chunk_size} combinations each")
+        print(f"splitting the problem in {n_chunks} chunk(s) of {chunk_size} combinations each")
         print(f"using {cpu_count()} cores")
 
         partial_evaluate = partial(evaluate_combination, N=N, W=W, A=A)
@@ -232,8 +231,7 @@ def solve_bruteforce(W, A, N, C):
                 best_energy = energy
                 best_state = state
 
-    t1 = time.time()
-    t_tot = t1 - t0
+    t_tot = time.time() - t0
     print(f"best solution: {best_state} with energy {best_energy}")
     if C == 0:
         C = int(np.sum(best_state))
@@ -245,8 +243,8 @@ def solve_bruteforce(W, A, N, C):
 
 if __name__ == "__main__":
     # number of sites
-    N_list = list(range(9,17)) + [18, 20, 22, 24]
-    # N_list = [16]
+    # N_list = list(range(9,17)) + [18, 20, 22, 24]
+    N_list = [6]
     xi = .25  # relative multiplier
     
     for N in N_list:
@@ -261,7 +259,7 @@ if __name__ == "__main__":
             fig, ax = plt.subplots()
             plot_antennas(data, status=best_state, axes=ax)
             ax.set_title(f"{N} sites, {C} cameras, energy {best_energy:.3f}, time {T:.4f} s")
-            fig.savefig(f"camera_placement/results/bruteforce_N{N}_C{C}_tst.pdf", bbox_inches='tight')
+            fig.savefig(f"camera_placement/results_bf/bruteforce_N{N}_C{C}.pdf", bbox_inches='tight')
             dict_res = {'N': N, 'C': C, 'energy': best_energy, 'time': T, 'state': best_state}
             np.save(f"camera_placement/results/bruteforce_N{N}_C{C}.npy", dict_res)
 
