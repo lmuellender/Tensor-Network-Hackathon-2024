@@ -2,16 +2,18 @@
 import random
 import pandas as pd
 import numpy as np
-import matplotlib as mpl
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
 from scipy.stats.qmc import Sobol
 import itertools
 import qtealeaves as qtl
 from qtealeaves import modeling
 from qtealeaves.convergence_parameters import TNConvergenceParameters
 from scipy.sparse.linalg import eigs, eigsh
-# from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import Statevector
 import time
 
 
@@ -53,6 +55,7 @@ def plot_antennas(df, status, axes=None):
     # df[['x_loc','y_loc','id']].apply(lambda x: axes.text(x[0], x[1], int(x[2])),axis=1)
     axes.set_ylabel('Latitude', fontsize=14)
     axes.set_xlabel('Longitude', fontsize=14)
+    # return figure
 
 #generate the problem
 def circle_overlap(x0, y0, r0, x1, y1, r1):
@@ -188,7 +191,7 @@ def generate_data(N,a,seed):
 
     return data
 
-def model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation):
+def model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation, random_sweep=False):
     model_name = lambda params: "CameraPlacement_xi%2.4f" % (params["xi"])
 
     # Define a general quantum model - 1-dimensional, of size "N", with a given name
@@ -216,6 +219,7 @@ def model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, 
                                         device='cpu', # we are running on CPUs
                                         imag_evo_dt=tau,
                                         rel_deviation = rel_deviation,
+                                        random_sweep=random_sweep
                                         )
 
     # input_folder = lambda params : 'input_L%02d_g%2.4f'%(params['L'],params['xi'],)
@@ -230,7 +234,7 @@ def model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, 
         )
     return model, simulation
 
-def everythin_else(sizes, C, P, xi_list, a, seed, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation=1e-12, sweep_order=None):
+def everythin_else(sizes, C, P, xi_list, a, seed, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation=1e-12, random_sweep=False, sweep_order=None):
     
     my_ops = qtl.operators.TNSpin12Operators()
 
@@ -257,7 +261,7 @@ def everythin_else(sizes, C, P, xi_list, a, seed, tau, max_bond_dim, cut_ratio, 
         W, A = generate_problem(data, 1.0, normalize=False)
         W_P, A_P, scaling = number_constraint(W, A, C, P=P, normalize=False)
 
-        model, simulation = model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation)
+        model, simulation = model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation, random_sweep)
 
         dlist.append(data)
         mlist.append(model)
