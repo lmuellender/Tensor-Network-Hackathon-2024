@@ -259,7 +259,7 @@ def everythin_else(sizes, C, P, xi_list, a, seed, tau, max_bond_dim, cut_ratio, 
 
         # actual generation of the problem
         W, A = generate_problem(data, 1.0, normalize=False)
-        W_P, A_P, scaling = number_constraint(W, A, C, P=P, normalize=False)
+        W_P, A_P, scaling = number_constraint(W, A, size//2, P=P, normalize=False)
 
         model, simulation = model_ocp(params, W_P, A_P, my_ops, tau, max_bond_dim, cut_ratio, max_iter, statics_method, tn_type, tensor_backend, num_shots, rel_deviation, random_sweep)
 
