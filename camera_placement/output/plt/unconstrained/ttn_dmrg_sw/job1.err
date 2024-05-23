@@ -1,0 +1,21 @@
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+Traceback (most recent call last):
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/results/unconstrained/ttn_dmrg_sw/final.py", line 75, in <module>
+    plot_antennas(dlist[ii], status=bit_strings[cnt])
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/results/unconstrained/ttn_dmrg_sw/ocp.py", line 45, in plot_antennas
+    color = 'g' if int(status[n]) == 0 else 'b'
+                   ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: '.'

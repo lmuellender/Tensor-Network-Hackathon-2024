@@ -32,8 +32,8 @@ def plot_antennas(df, status, axes=None):
     if axes is None:
         figure, axes = plt.subplots()
     for n, row in df.iterrows():
-        color = 'grey' if int(status[n]) == 0 else 'red'
-        alpha = 0.5 if int(status[n]) == 0 else 0.3
+        color = 'b' if int(status[n]) == 0 else 'g'
+        alpha = 0.3 if int(status[n]) == 0 else 0.5
         Drawing_colored_circle = plt.Circle(( row.x_loc , row.y_loc ), row.radius, color=color, alpha=alpha)
         axes.set_aspect( 1 )
         axes.add_artist( Drawing_colored_circle )
@@ -131,7 +131,7 @@ def generate_problem(N, xi=0.1):
 
     # Distribute sites uniformly but not symmetrically in the square
     m = int(np.ceil(np.log2(N)))
-    sampler = Sobol(2, scramble=False, optimization='random-cd')
+    sampler = Sobol(2, scramble=False, optimization='lloyd')
     sequence = sampler.random_base2(m=m)
 
     xs = [a*x[0] for x in sequence][:N]
@@ -244,7 +244,7 @@ def solve_bruteforce(W, A, N, C):
 if __name__ == "__main__":
     # number of sites
     # N_list = list(range(9,17)) + [18, 20, 22, 24]
-    N_list = [6]
+    N_list = [16]
     xi = .25  # relative multiplier
     
     for N in N_list:
@@ -259,8 +259,8 @@ if __name__ == "__main__":
             fig, ax = plt.subplots()
             plot_antennas(data, status=best_state, axes=ax)
             ax.set_title(f"{N} sites, {C} cameras, energy {best_energy:.3f}, time {T:.4f} s")
-            fig.savefig(f"camera_placement/results_bf/bruteforce_N{N}_C{C}.pdf", bbox_inches='tight')
+            fig.savefig(f"camera_placement/results_bf/bruteforce_N{N}_C{C}_color.pdf", bbox_inches='tight')
             dict_res = {'N': N, 'C': C, 'energy': best_energy, 'time': T, 'state': best_state}
-            np.save(f"camera_placement/results/bruteforce_N{N}_C{C}.npy", dict_res)
+            # np.save(f"camera_placement/results/bruteforce_N{N}_C{C}.npy", dict_res)
 
     plt.show()

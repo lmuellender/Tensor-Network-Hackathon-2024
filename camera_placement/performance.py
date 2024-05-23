@@ -25,8 +25,14 @@ ene_u_bf[-1] = -50.023
 time_u_bf[-1] = 48150.47
 # best solution N=32: [0. 0. 0. 0. 0. 1. 1. 1. 0. 0. 1. 1. 1. 0. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0. 0. 0.]
 
-# gurobi
+# tensor networks
+data_mps_dmrg_u = np.loadtxt('camera_placement/output/tn_mps_dmrg_unc.dat', usecols=range(5))
+data_mps_ite_c = np.loadtxt('camera_placement/output/tn_mps_ite_cons.dat', usecols=range(5))
+data_ttn_dmrg_u = np.loadtxt('camera_placement/output/tn_ttn_dmrg_ss_unc.dat', usecols=range(5))
+data_ttn_dmrg_c = np.loadtxt('camera_placement/output/tn_ttn_dmrg_ss_con.dat', usecols=range(5))
+data_ttn_dmrg_rs_u = np.loadtxt('camera_placement/output/tn_ttn_dmrg_rs_unc.dat', usecols=range(5))
 
+# gurobi
 data_gurobi = np.load('camera_placement/result_gurobi_LOCAL.npz')
 N_list_gur = np.arange(10,200,2)
 times_u_gur = data_gurobi['times_unc']
@@ -34,33 +40,48 @@ ene_u_gur = data_gurobi['energies_unc']
 times_c_gur = data_gurobi['times_con']
 ene_c_gur = data_gurobi['energies_con']
 
+
 fig, ax = plt.subplots(2,1,figsize=(10,8), sharex=True)
 ax[0].plot(N_list_bf, ene_u_bf, 'o-', label='brute force')
 ax[0].plot(N_list_gur, ene_u_gur, 'x-', label='gurobi')
+ax[0].plot(data_mps_dmrg_u[:,0], data_mps_dmrg_u[:,-1], '^-', label='MPS+DMRG')
+ax[0].plot(data_ttn_dmrg_u[:,0], data_ttn_dmrg_u[:,-1], 'v-', label='TTN+DMRG')
+ax[0].plot(data_ttn_dmrg_rs_u[:,0], data_ttn_dmrg_rs_u[:,-1], 's-', label='TTN+DMRG+RS')
 ax[1].plot(N_list_bf, ene_c_bf, 'o-', label='brute force')
 ax[1].plot(N_list_gur, ene_c_gur, 'x-', label='gurobi')
+ax[1].plot(data_mps_ite_c[:,0], data_mps_ite_c[:,-1], '^-', label='MPS+ITE')
+ax[1].plot(data_ttn_dmrg_c[:,0], data_ttn_dmrg_c[:,-1], 'v-', label='TTN+DMRG')
 ax[0].set_ylabel('Energy')
 ax[0].set_title('Unconstrained')
+ax[1].set_xscale('log')
 ax[1].set_xlabel('Number of sites')
 ax[1].set_ylabel('Energy')
 ax[1].set_title('Constrained')
+ax[1].set_xscale('log')
 ax[0].legend()
 ax[1].legend()
 fig.tight_layout()
 
 fig, ax = plt.subplots(2,1,figsize=(10,8), sharex=True)
-ax[0].plot(N_list_bf, time_c_bf, 'o-', label='brute force')
-ax[0].plot(N_list_gur, times_c_gur, 'o-', label='gurobi')
-ax[1].plot(N_list_bf, time_u_bf, 'o-', label='brute force')
-ax[1].plot(N_list_gur, times_u_gur, 'o-', label='gurobi')
+ax[0].plot(N_list_bf, time_u_bf, 'o-', label='brute force')
+ax[0].plot(N_list_gur, times_u_gur, 'o-', label='gurobi')
+ax[0].plot(data_mps_dmrg_u[:,0], data_mps_dmrg_u[:,-2], '^-', label='MPS+DMRG')
+ax[0].plot(data_ttn_dmrg_u[:,0], data_ttn_dmrg_u[:,-2], 'v-', label='TTN+DMRG')
+ax[0].plot(data_ttn_dmrg_rs_u[:,0], data_ttn_dmrg_rs_u[:,-2], 's-', label='TTN+DMRG+RS')
+ax[1].plot(N_list_bf, time_c_bf, 'o-', label='brute force')
+ax[1].plot(N_list_gur, times_c_gur, 'o-', label='gurobi')
+ax[1].plot(data_mps_ite_c[:,0], data_mps_ite_c[:,-2], '^-', label='MPS+ITE')
+ax[1].plot(data_ttn_dmrg_c[:,0], data_ttn_dmrg_c[:,-2], 'v-', label='TTN+DMRG')
 ax[0].set_ylabel('Time [s]')
 ax[0].set_yscale('log')
-ax[0].set_title('Constrained')
+ax[0].set_xscale('log')
+ax[0].set_title('Unconstrained')
 ax[0].legend()
 ax[1].set_xlabel('Number of sites')
 ax[1].set_ylabel('Time [s]')
 ax[1].set_yscale('log')
-ax[1].set_title('Unconstrained')
+ax[1].set_xscale('log')
+ax[1].set_title('Constrained')
 ax[1].legend()
 fig.tight_layout()
 

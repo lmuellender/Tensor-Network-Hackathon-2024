@@ -1,0 +1,28 @@
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+Traceback (most recent call last):
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/results/constrained/ttn_ite/final.py", line 59, in <module>
+    slist[ii].run(elem, delete_existing_folder=True, nthreads=1)
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/simulation_setup.py", line 524, in run
+    self.run_single(elem, delete_existing_folder=delete_existing_folder)
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/simulation_setup.py", line 951, in run_single
+    qtltn.tn_simulation.run_tn_simulation(self, params)
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/emulator/tn_simulation.py", line 293, in run_tn_simulation
+    _ = optimize(
+        ^^^^^^^^^
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/emulator/tn_simulation.py", line 655, in optimize
+    upd_fun(
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/emulator/abstract_tn.py", line 1923, in timestep_single_tensor_link_expansion
+    self.timestep_single_tensor(pos, pos_partner, sc_e)
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/emulator/abstract_tn.py", line 1695, in timestep_single_tensor
+    krylov_solver = self._solver(
+                    ^^^^^^^^^^^^^
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/solvers/krylovexp_solver.py", line 68, in __init__
+    self.init_basis()
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/solvers/krylovexp_solver.py", line 76, in init_basis
+    self.vec /= self.sdiag_0
+  File "/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py", line 236, in __itruediv__
+    raise Exception("Trying to divide by zero.")
+Exception: Trying to divide by zero.

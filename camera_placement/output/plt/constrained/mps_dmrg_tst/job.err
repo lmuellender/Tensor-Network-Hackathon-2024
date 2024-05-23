@@ -1,0 +1,15 @@
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+/g100/home/userexternal/pnaredi0/Tensor-Network-Hackathon-2024/TN_results/lib/python3.11/site-packages/qtealeaves/tensors/tensor.py:560: ComplexWarning: Casting complex values to real discards the imaginary part
+  self._elem = self._elem.astype(dtype)
+slurmstepd: error: *** JOB 13499310 ON r519c11n01 CANCELLED AT 2024-05-23T15:32:18 ***
